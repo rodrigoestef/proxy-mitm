@@ -5,8 +5,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.proxy.gate.application.repository.TesteRepository;
-import com.proxy.gate.infra.DiscardServerHandler;
+import com.proxy.gate.application.usecase.MatchRequestUseCase;
+import com.proxy.gate.infra.ProxyServerHandler;
 
 import io.netty.bootstrap.ServerBootstrap;
 
@@ -15,6 +15,8 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
@@ -22,7 +24,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 public class GateApplication extends ChannelInitializer<SocketChannel> implements CommandLineRunner {
 
   @Autowired
-  public TesteRepository repo;
+  private MatchRequestUseCase matchRequestUseCase;
 
   public static void main(String[] args) {
     SpringApplication.run(GateApplication.class, args);
@@ -30,8 +32,6 @@ public class GateApplication extends ChannelInitializer<SocketChannel> implement
 
   @Override
   public void run(String... args) throws Exception {
-    var a = this.repo.findAll();
-    System.out.println(a);
     EventLoopGroup bossGroup = new NioEventLoopGroup(); // (1)
     EventLoopGroup workerGroup = new NioEventLoopGroup();
     try {
@@ -58,7 +58,9 @@ public class GateApplication extends ChannelInitializer<SocketChannel> implement
 
   @Override
   protected void initChannel(SocketChannel ch) throws Exception {
-    ch.pipeline().addLast(new DiscardServerHandler());
+    ch.pipeline().addLast(new HttpServerCodec());
+    ch.pipeline().addLast(new HttpObjectAggregator(10 * 1024 * 1024));
+    ch.pipeline().addLast(new ProxyServerHandler(this.matchRequestUseCase));
   }
 
 }
