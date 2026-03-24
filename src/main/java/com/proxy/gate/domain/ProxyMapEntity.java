@@ -1,5 +1,6 @@
 package com.proxy.gate.domain;
 
+import com.proxy.gate.enums.ContentTypes;
 import com.proxy.gate.enums.Methods;
 
 import jakarta.persistence.Column;
@@ -27,6 +28,12 @@ public class ProxyMapEntity {
   public String response;
 
   @Column
-  public String content;
+  @Enumerated(EnumType.STRING)
+  public ContentTypes content;
+
+  @Override
+  public String toString() {
+    return this.url + " - " + this.method + " - " + this.content;
+  }
 
 }
