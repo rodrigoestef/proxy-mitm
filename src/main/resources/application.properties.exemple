@@ -3,9 +3,13 @@ spring.application.name=gate
 spring.datasource.driver-class-name=org.relique.jdbc.csv.CsvDriver
 
 # URL apontando para o diretório dos arquivos
-spring.datasource.url=jdbc:relique:csv:/Users/drt67801/Desktop/teste
+spring.datasource.url=jdbc:relique:csv:classpath:base
 
 # Como o CSV não suporta comandos de criação de tabela (DDL), desabilite o Hibernate de tentar alterar o schema
 spring.jpa.hibernate.ddl-auto=none
 
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.HSQLDialect
+
+proxy.port=8080
+proxy.ca.cert-path=classpath:ca/ca.pem
+proxy.ca.key-path=classpath:ca/ca.key

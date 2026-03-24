@@ -18,9 +18,10 @@ public class MatchRequestUseCase {
   }
 
   public Optional<MatchRequestResponseDto> execute(RequestDto dto) {
-    System.out.println(dto.method());
-
     var match = this.repository.findByUrlAndMethod(dto.url(), dto.method());
+
+    System.out.println(dto.url());
+    System.out.println(dto.method());
 
     if (match.isEmpty()) {
       return Optional.empty();
@@ -28,7 +29,7 @@ public class MatchRequestUseCase {
 
     var entity = match.get();
 
-    var response = new MatchRequestResponseDto(entity.response, entity.content);
+    var response = new MatchRequestResponseDto(entity.response, entity.content.toString());
     return Optional.of(response);
 
   }

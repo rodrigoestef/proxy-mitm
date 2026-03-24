@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+src/main/resources/ca/*
+!src/main/resources/ca/.gitkeep
+.DS_Store
+application.properties
