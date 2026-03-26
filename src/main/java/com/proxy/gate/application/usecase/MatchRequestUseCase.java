@@ -2,8 +2,6 @@ package com.proxy.gate.application.usecase;
 
 import java.util.Optional;
 
-import org.springframework.stereotype.Service;
-
 import com.proxy.gate.application.dtos.MatchRequestResponseDto;
 import com.proxy.gate.application.dtos.RequestDto;
 import com.proxy.gate.application.repository.ProxyRepository;
@@ -11,8 +9,9 @@ import com.proxy.gate.domain.ProxyMapEntity;
 
 import java.util.function.Predicate;
 
-@Service
-public class MatchRequestUseCase {
+import com.proxy.gate.interfaces.MatchRequestUseCaseInterface;
+
+public class MatchRequestUseCase implements MatchRequestUseCaseInterface {
 
   private final ProxyRepository repository;
 

@@ -37,12 +37,30 @@ public class ProxyMapEntity {
   @Column
   public int status;
 
+  @Column
+  protected boolean reverse;
+
+  @Column
+  protected String reverseUri;
+
+  public URI getReverUri(){
+    return URI.create(this.reverseUri);
+  }
+
+  public boolean matchReverseRequest(URI a) {
+    var uri = this.uri.getURI();
+    if (uri.getHost().equals(a.getHost())) {
+      return this.reverse;
+    }
+    return false;
+  }
+
   public boolean matchRequest(URI a, Methods method) {
     if (!this.uri.compareUri(a)) {
       return false;
     }
 
-    if(this.method.compareTo(method) == 0){
+    if (this.method.compareTo(method) == 0) {
       return true;
     }
 

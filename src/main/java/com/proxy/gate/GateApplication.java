@@ -6,8 +6,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.proxy.gate.application.usecase.MatchRequestUseCase;
 import com.proxy.gate.infra.ProxyServerHandler;
+import com.proxy.gate.interfaces.MatchRequestUseCaseInterface;
 
 import io.netty.bootstrap.ServerBootstrap;
 
@@ -25,7 +25,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 public class GateApplication extends ChannelInitializer<SocketChannel> implements CommandLineRunner {
 
   @Autowired
-  private MatchRequestUseCase matchRequestUseCase;
+  private MatchRequestUseCaseInterface matchRequestUseCase;
 
   @Value("${proxy.port:8080}")
   private int proxyPort;
