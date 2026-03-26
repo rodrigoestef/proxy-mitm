@@ -50,6 +50,10 @@ import java.util.stream.Collectors;
 public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   private static final int MAX_HTTP_CONTENT_LENGTH = 10 * 1024 * 1024;
   private static final Path WORK_DIR = Path.of(System.getProperty("java.io.tmpdir"), "gate-mitm-certs");
+  private static final String CORS_ALLOW_ORIGIN = "*";
+  private static final String CORS_ALLOW_METHODS = "GET, POST, PUT, PATCH, DELETE, OPTIONS";
+  private static final String CORS_DEFAULT_ALLOW_HEADERS = "Content-Type, Authorization";
+  private static final String CORS_MAX_AGE_SECONDS = "600";
 
   private static final Set<String> HOP_BY_HOP_HEADERS = Set.of(
       "connection",
@@ -86,6 +90,11 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest inboundRequest) {
+    if (HttpMethod.OPTIONS.equals(inboundRequest.method())) {
+      writePreflightResponse(ctx, inboundRequest);
+      return;
+    }
+
     if (HttpMethod.CONNECT.equals(inboundRequest.method())) {
       handleConnect(ctx, inboundRequest);
       return;
@@ -175,6 +184,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
                 Unpooled.wrappedBuffer(outboundResponse.body()));
 
             copyResponseHeaders(outboundResponse, proxiedResponse.headers());
+            applyCorsHeaders(proxiedResponse.headers(), inboundRequest.headers(), false, false);
             proxiedResponse.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, proxiedResponse.content().readableBytes());
 
             boolean keepAlive = HttpUtil.isKeepAlive(inboundRequest);
@@ -412,6 +422,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
       String contentType) {
     FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, Unpooled.wrappedBuffer(body));
     response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
+    applyCorsHeaders(response.headers(), inboundRequest.headers(), true, false);
     response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
 
     boolean keepAlive = HttpUtil.isKeepAlive(inboundRequest);
@@ -420,6 +431,45 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
       ctx.writeAndFlush(response);
     } else {
       ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
+  }
+
+  private static void writePreflightResponse(ChannelHandlerContext ctx, FullHttpRequest inboundRequest) {
+    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NO_CONTENT);
+    applyCorsHeaders(response.headers(), inboundRequest.headers(), true, true);
+    response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, 0);
+
+    boolean keepAlive = HttpUtil.isKeepAlive(inboundRequest);
+    if (keepAlive) {
+      HttpUtil.setKeepAlive(response, true);
+      ctx.writeAndFlush(response);
+    } else {
+      ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
+  }
+
+  private static void applyCorsHeaders(
+      HttpHeaders responseHeaders,
+      HttpHeaders requestHeaders,
+      boolean overwriteExisting,
+      boolean includePreflightHeaders) {
+    setHeader(responseHeaders, HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, CORS_ALLOW_ORIGIN, overwriteExisting);
+    setHeader(responseHeaders, HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, CORS_ALLOW_METHODS, overwriteExisting);
+
+    String requestedHeaders = requestHeaders.get(HttpHeaderNames.ACCESS_CONTROL_REQUEST_HEADERS);
+    String allowHeaders = requestedHeaders == null || requestedHeaders.isBlank()
+        ? CORS_DEFAULT_ALLOW_HEADERS
+        : requestedHeaders;
+    setHeader(responseHeaders, HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, allowHeaders, overwriteExisting);
+
+    if (includePreflightHeaders) {
+      setHeader(responseHeaders, HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, CORS_MAX_AGE_SECONDS, overwriteExisting);
+    }
+  }
+
+  private static void setHeader(HttpHeaders headers, CharSequence name, String value, boolean overwriteExisting) {
+    if (overwriteExisting || !headers.contains(name)) {
+      headers.set(name, value);
     }
   }
 
@@ -506,6 +556,11 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest inboundRequest) {
+      if (HttpMethod.OPTIONS.equals(inboundRequest.method())) {
+        writePreflightResponse(ctx, inboundRequest);
+        return;
+      }
+
       URI targetUri;
       try {
         targetUri = resolveTargetUri(inboundRequest, target);
@@ -548,6 +603,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
                   Unpooled.wrappedBuffer(outboundResponse.body()));
 
               copyResponseHeaders(outboundResponse, proxiedResponse.headers());
+              applyCorsHeaders(proxiedResponse.headers(), inboundRequest.headers(), false, false);
               proxiedResponse.headers().setInt(HttpHeaderNames.CONTENT_LENGTH,
                   proxiedResponse.content().readableBytes());
 
