@@ -34,6 +34,9 @@ public class ProxyMapEntity {
   @Enumerated(EnumType.STRING)
   public ContentTypes content;
 
+  @Column
+  public int status;
+
   public boolean matchRequest(URI a, Methods method) {
     if (!this.uri.compareUri(a)) {
       return false;

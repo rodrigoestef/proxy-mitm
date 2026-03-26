@@ -48,7 +48,7 @@ public class MatchRequestUseCase {
     var entity = match.get();
     System.out.println(entity);
 
-    var response = new MatchRequestResponseDto(entity.response, entity.content.toString(), 200);
+    var response = new MatchRequestResponseDto(entity.response, entity.content.toString(), entity.status);
     return Optional.of(response);
 
   }
