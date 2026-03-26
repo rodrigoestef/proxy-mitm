@@ -11,6 +11,7 @@ import com.proxy.gate.enums.ContentTypes;
 import com.proxy.gate.enums.Methods;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,12 +29,12 @@ public class MatchRequestUseCaseTest extends ProxyMapEntity {
     var repo = mock(ProxyRepository.class);
 
     var en = new MatchRequestUseCaseTest();
-    en.uri = new URIObject("https","exemple.com.br", "/");
+    en.uri = new URIObject("https", "exemple.com.br", "/");
     when(repo.findAll()).thenReturn(List.of(en));
 
     var service = new MatchRequestUseCase(repo);
 
-    var dto = new RequestDto(Methods.GET, URI.create("https://exemple.com/"));
+    var dto = new RequestDto(Methods.GET, URI.create("https://exemple.com/"), "", new HashMap<String, String>());
 
     var result = service.execute(dto);
 
@@ -45,30 +46,29 @@ public class MatchRequestUseCaseTest extends ProxyMapEntity {
     var repo = mock(ProxyRepository.class);
 
     var en = new MatchRequestUseCaseTest();
-    en.uri = new URIObject("https","exemple.com", "/");
+    en.uri = new URIObject("https", "exemple.com", "/");
     when(repo.findAll()).thenReturn(List.of(en));
 
     var service = new MatchRequestUseCase(repo);
 
-    var dto = new RequestDto(Methods.POST, URI.create("https://exemple.com/"));
+    var dto = new RequestDto(Methods.POST, URI.create("https://exemple.com/"), "", new HashMap<String, String>());
 
     var result = service.execute(dto);
 
     assertEquals(true, result.isEmpty());
   }
 
-
   @Test
   public void testMatch() {
     var repo = mock(ProxyRepository.class);
 
     var en = new MatchRequestUseCaseTest();
-    en.uri = new URIObject("https","exemple.com", "/");
+    en.uri = new URIObject("https", "exemple.com", "/");
     when(repo.findAll()).thenReturn(List.of(en));
 
     var service = new MatchRequestUseCase(repo);
 
-    var dto = new RequestDto(Methods.GET, URI.create("https://exemple.com/"));
+    var dto = new RequestDto(Methods.GET, URI.create("https://exemple.com/"), "", new HashMap<String, String>());
 
     var result = service.execute(dto);
 
