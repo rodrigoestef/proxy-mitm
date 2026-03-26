@@ -20,7 +20,7 @@ public class MatchRequestUseCase {
 
     private final RequestDto dto;
 
-    private Filter(RequestDto dto){
+    private Filter(RequestDto dto) {
       this.dto = dto;
     }
 
@@ -34,13 +34,12 @@ public class MatchRequestUseCase {
     this.repository = repository;
   }
 
-
   public Optional<MatchRequestResponseDto> execute(RequestDto dto) {
 
     var match = this.repository.findAll().stream().filter(new Filter(dto)).findAny();
 
-    System.out.println(dto.url());
-    System.out.println(dto.method());
+    // System.out.println(dto.url());
+    // System.out.println(dto.body());
 
     if (match.isEmpty()) {
       return Optional.empty();
@@ -49,7 +48,7 @@ public class MatchRequestUseCase {
     var entity = match.get();
     System.out.println(entity);
 
-    var response = new MatchRequestResponseDto(entity.response, entity.content.toString());
+    var response = new MatchRequestResponseDto(entity.response, entity.content.toString(), 200);
     return Optional.of(response);
 
   }

@@ -393,7 +393,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
     String contentType = matchedResponse.contentType() == null || matchedResponse.contentType().isBlank()
         ? "text/plain; charset=utf-8"
         : matchedResponse.contentType();
-    writeResponse(ctx, inboundRequest, HttpResponseStatus.OK, body.getBytes(CharsetUtil.UTF_8), contentType);
+    writeResponse(ctx, inboundRequest, HttpResponseStatus.valueOf(matchedResponse.statusCode()), body.getBytes(CharsetUtil.UTF_8), contentType);
   }
 
   private static void writeResponse(
