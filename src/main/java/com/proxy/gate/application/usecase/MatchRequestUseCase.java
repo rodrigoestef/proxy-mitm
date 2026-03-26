@@ -38,9 +38,6 @@ public class MatchRequestUseCase {
 
     var match = this.repository.findAll().stream().filter(new Filter(dto)).findAny();
 
-    // System.out.println(dto.url());
-    // System.out.println(dto.body());
-
     if (match.isEmpty()) {
       return Optional.empty();
     }
