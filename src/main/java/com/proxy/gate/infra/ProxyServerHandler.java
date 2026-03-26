@@ -2,8 +2,9 @@ package com.proxy.gate.infra;
 
 import com.proxy.gate.application.dtos.MatchRequestResponseDto;
 import com.proxy.gate.application.dtos.RequestDto;
-import com.proxy.gate.application.usecase.MatchRequestUseCase;
 import com.proxy.gate.enums.Methods;
+import com.proxy.gate.interfaces.MatchRequestUseCaseInterface;
+
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -61,13 +62,13 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
       "upgrade",
       "proxy-connection");
 
-  private final MatchRequestUseCase matchRequestUseCase;
+  private final MatchRequestUseCaseInterface matchRequestUseCase;
   private final HttpClient httpClient;
   private final Path caCertFile;
   private final Path caKeyFile;
   private final ConcurrentMap<String, SslContext> hostSslContexts = new ConcurrentHashMap<>();
 
-  public ProxyServerHandler(MatchRequestUseCase matchRequestUseCase, String caCertPath, String caKeyPath) {
+  public ProxyServerHandler(MatchRequestUseCaseInterface matchRequestUseCase, String caCertPath, String caKeyPath) {
     this.matchRequestUseCase = matchRequestUseCase;
     this.httpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(20))
@@ -490,12 +491,12 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
   }
 
   private static final class HttpsInterceptHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-    private final MatchRequestUseCase matchRequestUseCase;
+    private final MatchRequestUseCaseInterface matchRequestUseCase;
     private final HttpClient httpClient;
     private final HostAndPort target;
 
     private HttpsInterceptHandler(
-        MatchRequestUseCase matchRequestUseCase,
+        MatchRequestUseCaseInterface matchRequestUseCase,
         HttpClient httpClient,
         HostAndPort target) {
       this.matchRequestUseCase = matchRequestUseCase;
