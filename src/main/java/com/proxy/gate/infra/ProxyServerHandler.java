@@ -297,7 +297,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
     if (method == null) {
       return Optional.empty();
     }
-    return Optional.of(new RequestDto(method, targetUri.toString()));
+    return Optional.of(new RequestDto(method, targetUri));
   }
 
   private static HttpRequest.BodyPublisher buildBodyPublisher(byte[] requestBody) {
