@@ -38,10 +38,12 @@ import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 @ChannelHandler.Sharable
 public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -194,7 +196,8 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
     }
   }
 
-  private synchronized HostCertificateFiles ensureHostCertificate(String host) throws IOException, InterruptedException {
+  private synchronized HostCertificateFiles ensureHostCertificate(String host)
+      throws IOException, InterruptedException {
     String safeHost = sanitizeHost(host);
     Path hostKey = WORK_DIR.resolve(safeHost + ".key.pem");
     Path hostCsr = WORK_DIR.resolve(safeHost + ".csr.pem");
@@ -297,7 +300,11 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
     if (method == null) {
       return Optional.empty();
     }
-    return Optional.of(new RequestDto(method, targetUri));
+    String body = inboundRequest.content().toString(StandardCharsets.UTF_8);
+    var headers = inboundRequest.headers().entries().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    return Optional.of(new RequestDto(method, targetUri, body, headers));
   }
 
   private static HttpRequest.BodyPublisher buildBodyPublisher(byte[] requestBody) {
@@ -540,7 +547,8 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
                   Unpooled.wrappedBuffer(outboundResponse.body()));
 
               copyResponseHeaders(outboundResponse, proxiedResponse.headers());
-              proxiedResponse.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, proxiedResponse.content().readableBytes());
+              proxiedResponse.headers().setInt(HttpHeaderNames.CONTENT_LENGTH,
+                  proxiedResponse.content().readableBytes());
 
               boolean keepAlive = HttpUtil.isKeepAlive(inboundRequest);
               if (keepAlive) {
