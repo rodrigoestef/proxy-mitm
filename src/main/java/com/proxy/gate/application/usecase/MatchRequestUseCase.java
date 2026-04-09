@@ -44,7 +44,7 @@ public class MatchRequestUseCase implements MatchRequestUseCaseInterface {
     var entity = match.get();
     System.out.println(entity);
 
-    var response = new MatchRequestResponseDto(entity.response, entity.content.toString(), entity.status);
+    var response = new MatchRequestResponseDto(entity.getResponse(), entity.getContentType(), entity.getStatus());
     return Optional.of(response);
 
   }

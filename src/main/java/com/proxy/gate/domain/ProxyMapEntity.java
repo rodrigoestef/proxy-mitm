@@ -1,5 +1,6 @@
 package com.proxy.gate.domain;
 
+import com.proxy.gate.domain.objects.FixedResponse;
 import com.proxy.gate.domain.objects.URIObject;
 import com.proxy.gate.enums.ContentTypes;
 import com.proxy.gate.enums.Methods;
@@ -27,15 +28,8 @@ public class ProxyMapEntity {
   @Enumerated(EnumType.STRING)
   protected Methods method;
 
-  @Column
-  public String response;
-
-  @Column
-  @Enumerated(EnumType.STRING)
-  public ContentTypes content;
-
-  @Column
-  public int status;
+  @Embedded
+  protected FixedResponse fixedResponse;
 
   @Column
   protected boolean reverse;
@@ -43,7 +37,19 @@ public class ProxyMapEntity {
   @Column
   protected String reverseUri;
 
-  public URI getReverUri(){
+  public String getContentType() {
+    return this.fixedResponse.getContentType();
+  }
+
+  public String getResponse() {
+    return this.fixedResponse.getResponse();
+  }
+
+  public int getStatus() {
+    return this.fixedResponse.getStatus();
+  }
+
+  public URI getReverUri() {
     return URI.create(this.reverseUri);
   }
 
@@ -69,7 +75,7 @@ public class ProxyMapEntity {
 
   @Override
   public String toString() {
-    return this.uri + " - " + this.method + " - " + this.content;
+    return this.uri + " - " + this.method;
   }
 
 }
